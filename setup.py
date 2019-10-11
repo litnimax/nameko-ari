@@ -14,7 +14,7 @@ setup(
         "python-ari",
     ],
     packages=('nameko_ari',),
-    package_dir={'nameko_ami': 'nameko_ari'},
+    package_dir={'nameko_ari': 'nameko_ari'},
     extras_require={
         'dev': [
             "coverage==4.0.3",
