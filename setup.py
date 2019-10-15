@@ -11,7 +11,7 @@ setup(
     py_modules=['nameko_ari'],
     install_requires=[
         "nameko>=2.5.1",
-        "python-ari",
+        "bravado",
     ],
     packages=('nameko_ari',),
     package_dir={'nameko_ari': 'nameko_ari'},
