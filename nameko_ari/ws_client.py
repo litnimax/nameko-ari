@@ -2,14 +2,22 @@ import eventlet
 eventlet.monkey_patch() 
 import json
 import logging
-import socket
+import websocket
 from urllib.parse import urljoin
 from nameko.extensions import Entrypoint, ProviderCollector, SharedExtension
+from nameko.extensions import DependencyProvider
 from swaggerpy.http_client import SynchronousHttpClient
 from swaggerpy.client import SwaggerClient
 
 
 logger = logging.getLogger(__name__)
+
+
+class WsClientExt(DependencyProvider):
+    def get_dependency(self, worker_ctx):
+        for ext in self.container.extensions:
+            if isinstance(ext, WsClient):
+                return ext
 
 
 class WsClient(SharedExtension, ProviderCollector):
@@ -41,6 +49,7 @@ class WsClient(SharedExtension, ProviderCollector):
 
     def stop(self):
         if self.client:
+            logger.info('Closing ARI client...')
             self.client.close()
             super(WsClient, self).stop()
 
@@ -51,14 +60,7 @@ class WsClient(SharedExtension, ProviderCollector):
                 for msg_str in iter(lambda: ws.recv(), None):
                     msg_json = json.loads(msg_str)
                     self.handle_event(msg_json)
-            except socket.error as e:
-                if e.errno == 32: # Broken pipe as we close the client.
-                    pass
-            except ValueError as e:
-                if e.message == 'No JSON object could be decoded': # client.close()
-                    pass
             except Exception as e:
-                self.client = None
                 error = e.message if hasattr(e, 'message') else str(e)
                 logger.error('ARI connection error (%s), reconnect...', error)
                 eventlet.sleep(1)
