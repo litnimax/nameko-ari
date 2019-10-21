@@ -3,7 +3,7 @@ eventlet.monkey_patch()
 import json
 import logging
 import websocket
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 from nameko.extensions import Entrypoint, ProviderCollector, SharedExtension
 from nameko.extensions import DependencyProvider
 from swaggerpy.http_client import SynchronousHttpClient
@@ -32,15 +32,17 @@ class WsClient(SharedExtension, ProviderCollector):
     def setup(self):
         if not self.app_name:
             self.app_name = self.container.config['ASTERISK_ARI_APP']
-        http_uri = self.container.config['ASTERISK_HTTP_URI']
-        self.ari_url = urljoin(http_uri, 'ari/api-docs/resources.json')
+        self.http_uri = self.container.config['ASTERISK_HTTP_URI']
+        self.ari_url = urljoin(self.http_uri, 'ari/api-docs/resources.json')
         self.ari_user = self.container.config['ASTERISK_ARI_USER']
         self.ari_pass = self.container.config['ASTERISK_ARI_PASS']                    
         self.setup_client()
 
     def setup_client(self):
-        http_client = SynchronousHttpClient()
-        http_client.set_basic_auth('asterisk', self.ari_user, self.ari_pass)
+        http_client = SynchronousHttpClient()        
+        http_client.set_basic_auth(
+                urlparse(self.http_uri).netloc.split(':')[0],
+                self.ari_user, self.ari_pass)
         self.client = SwaggerClient(self.ari_url, http_client=http_client)
         logger.info('ARI client setup done.')
 

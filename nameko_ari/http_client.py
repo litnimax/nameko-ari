@@ -1,7 +1,7 @@
 import eventlet
 eventlet.monkey_patch() 
 import logging
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 from nameko.extensions import DependencyProvider
 from swaggerpy.http_client import SynchronousHttpClient
 from swaggerpy.client import SwaggerClient
@@ -14,8 +14,8 @@ class AriClient(DependencyProvider):
     ari = None
 
     def setup(self):
-        http_uri = self.container.config['ASTERISK_HTTP_URI']
-        self.ari_url = urljoin(http_uri, 'ari/api-docs/resources.json')
+        self.http_uri = self.container.config['ASTERISK_HTTP_URI']
+        self.ari_url = urljoin(self.http_uri, 'ari/api-docs/resources.json')
         self.ari_user = self.container.config['ASTERISK_ARI_USER']
         self.ari_pass = self.container.config['ASTERISK_ARI_PASS']        
         self.app_name = self.container.config['ASTERISK_ARI_APP']
@@ -23,7 +23,9 @@ class AriClient(DependencyProvider):
 
     def setup_ari_client(self):
         http_client = SynchronousHttpClient()
-        http_client.set_basic_auth('asterisk', self.ari_user, self.ari_pass)
+        http_client.set_basic_auth(
+                                urlparse(self.http_uri).netloc.split(':')[0],
+                                self.ari_user, self.ari_pass)
         self.ari = SwaggerClient(self.ari_url, http_client=http_client)
         logger.info('ARI client setup done.')
 
