@@ -35,8 +35,15 @@ class WsClient(SharedExtension, ProviderCollector):
         self.http_uri = self.container.config['ASTERISK_HTTP_URI']
         self.ari_url = urljoin(self.http_uri, 'ari/api-docs/resources.json')
         self.ari_user = self.container.config['ASTERISK_ARI_USER']
-        self.ari_pass = self.container.config['ASTERISK_ARI_PASS']                    
-        self.setup_client()
+        self.ari_pass = self.container.config['ASTERISK_ARI_PASS']
+        # No sense in starting before setup is done
+        while True:
+            try:
+                self.setup_client()
+                break
+            except Exception as e:
+                logger.error('ARI WS setup error: %s', e)
+                eventlet.sleep(1)
 
     def setup_client(self):
         http_client = SynchronousHttpClient()        
