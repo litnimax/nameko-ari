@@ -30,6 +30,9 @@ class WsClient(SharedExtension, ProviderCollector):
         super(WsClient, self).__init__(**kwargs)
 
     def setup(self):
+        if self.container.config.get('ASTERISK_ARI_ENABLED', True):
+            logger.info('ARI disabled.')
+            return
         if not self.app_name:
             self.app_name = self.container.config['ASTERISK_ARI_APP']
         self.http_uri = self.container.config['ASTERISK_HTTP_URI']
@@ -46,14 +49,16 @@ class WsClient(SharedExtension, ProviderCollector):
                 eventlet.sleep(1)
 
     def setup_client(self):
-        http_client = SynchronousHttpClient()        
+        http_client = SynchronousHttpClient()
         http_client.set_basic_auth(
-                urlparse(self.http_uri).netloc.split(':')[0],
-                self.ari_user, self.ari_pass)
+            urlparse(self.http_uri).netloc.split(':')[0],
+            self.ari_user, self.ari_pass)
         self.client = SwaggerClient(self.ari_url, http_client=http_client)
         logger.info('ARI client setup done.')
 
     def start(self):
+        if self.container.config.get('ASTERISK_ARI_ENABLED', True):
+            return
         self.container.spawn_managed_thread(self.run)
 
     def stop(self):
@@ -64,7 +69,7 @@ class WsClient(SharedExtension, ProviderCollector):
 
     def run(self):
         while True:
-            try:                
+            try:
                 ws = self.client.events.eventWebsocket(app=self.app_name)
                 for msg_str in iter(lambda: ws.recv(), None):
                     msg_json = json.loads(msg_str)
