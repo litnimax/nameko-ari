@@ -30,7 +30,7 @@ class WsClient(SharedExtension, ProviderCollector):
         super(WsClient, self).__init__(**kwargs)
 
     def setup(self):
-        if self.container.config.get('ASTERISK_ARI_ENABLED', True):
+        if not self.container.config.get('ASTERISK_ARI_ENABLED'):
             logger.info('ARI disabled.')
             return
         if not self.app_name:
@@ -57,7 +57,7 @@ class WsClient(SharedExtension, ProviderCollector):
         logger.info('ARI client setup done.')
 
     def start(self):
-        if self.container.config.get('ASTERISK_ARI_ENABLED', True):
+        if not self.container.config.get('ASTERISK_ARI_ENABLED'):
             return
         self.container.spawn_managed_thread(self.run)
 
