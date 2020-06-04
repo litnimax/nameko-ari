@@ -14,9 +14,6 @@ class AriClient(DependencyProvider):
     ari = None
 
     def setup(self):
-        if not self.container.config.get('ASTERISK_ARI_ENABLED'):
-            logger.info('ARI disabled.')
-            return
         self.http_uri = self.container.config['ASTERISK_HTTP_URI']
         self.ari_url = urljoin(self.http_uri, 'ari/api-docs/resources.json')
         self.ari_user = self.container.config['ASTERISK_ARI_USER']

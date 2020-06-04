@@ -30,11 +30,8 @@ class WsClient(SharedExtension, ProviderCollector):
         super(WsClient, self).__init__(**kwargs)
 
     def setup(self):
-        if not self.container.config.get('ASTERISK_ARI_ENABLED'):
-            logger.info('ARI disabled.')
-            return
         if not self.app_name:
-            self.app_name = self.container.config['ASTERISK_ARI_APP']
+            self.app_name = self.container.config.get('ASTERISK_ARI_APP')
         self.http_uri = self.container.config['ASTERISK_HTTP_URI']
         self.ari_url = urljoin(self.http_uri, 'ari/api-docs/resources.json')
         self.ari_user = self.container.config['ASTERISK_ARI_USER']
@@ -57,8 +54,6 @@ class WsClient(SharedExtension, ProviderCollector):
         logger.info('ARI client setup done.')
 
     def start(self):
-        if not self.container.config.get('ASTERISK_ARI_ENABLED'):
-            return
         self.container.spawn_managed_thread(self.run)
 
     def stop(self):

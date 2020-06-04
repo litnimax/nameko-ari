@@ -19,7 +19,6 @@ def on_stasis_event(self, event):
 
 Configuration parameters:
 
-* **ASTERISK_ARI_ENABLED** (default - yes): if set to no, ARI client will not setup.
 * **ASTERISK_HTTP_URI** - Asterisk ARI connection string, e.g. `http://127.0.0.1:8088`.
   The rest part `ari/api-docs/resources.json` will be appended to this URI.
 * **ASTERISK_ARI_USER** - ARI login from ``ari.conf``.
